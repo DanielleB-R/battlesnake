@@ -1,0 +1,22 @@
+$imports:
+  vars: ../vars.yaml
+  snakeName: 'env:SNAKE_NAME'
+  snakeVars: ../../snakes/{{ snakeName }}/vars.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: !$ snakeVars.name
+  namespace: !$ vars.namespace
+  labels:
+    app: !$ snakeVars.name
+  annotations:
+    component: app
+    serviceOwner: !$ snakeVars.owner
+    environment: !$ iidy.environment
+spec:
+  ports:
+    - port: 80
+      targetPort: !$ snakeVars.port
+  selector:
+    app: !$ snakeVars.name

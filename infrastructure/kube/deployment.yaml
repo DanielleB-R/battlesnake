@@ -1,0 +1,57 @@
+$imports:
+  version: 'env:VERSION'
+  repository: 'env:ECR_URL'
+  vars: ../vars.yaml
+  snakeName: 'env:SNAKE_NAME'
+  snakeVars: ../../snakes/{{ snakeName }}/vars.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !$ snakeVars.name
+  namespace: !$ vars.namespace
+  labels:
+    app: !$ snakeVars.name
+  annotations:
+    owner: !$ snakeVars.owner
+    environment: !$ iidy.environment
+spec:
+  replicas: !$ vars.replicas
+  selector:
+    matchLabels:
+      app: !$ snakeVars.name
+  template:
+    metadata:
+      annotations:
+        # By default we dont log to sumo to reduce our logging there
+        # All containers log to cloudwatch under the path /aws/eks/CLUSTER_NAME/NAMESPACE
+        # If instead you want to log to sumo you can remove this annotation
+      labels:
+        app: !$ snakeVars.name
+    spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 65534
+      containers:
+        - name: app
+          image: "{{ repository }}:{{ snakeName }}-{{ version }}"
+          imagePullPolicy: Always
+          env:
+            - name: ENVIRONMENT
+              value: !$ iidy.environment
+          ports:
+            - containerPort: !$ snakeVars.port
+          livenessProbe:
+            httpGet:
+              path: /
+              port: !$ snakeVars.port
+            initialDelaySeconds: 120
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: !$ snakeVars.port
+            initialDelaySeconds: 10
+            periodSeconds: 3
+          resources:
+            !$ snakeVars.resources

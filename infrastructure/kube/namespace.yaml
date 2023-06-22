@@ -1,0 +1,10 @@
+$imports:
+  vars: ../vars.yaml
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: !$ vars.namespace
+  labels:
+    owner: !$ vars.serviceOwner
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled

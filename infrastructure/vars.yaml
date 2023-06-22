@@ -1,0 +1,5 @@
+serviceName: battlesnake
+serviceOwner: core
+namespace: battlesnake
+replicas: 1
+port: 8080

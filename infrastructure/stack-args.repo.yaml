@@ -1,0 +1,17 @@
+$imports:
+  vars: vars.yaml
+  serviceRoleArn: cfn:export:cloudformation-service-roles:CloudFormationDeploymentServiceRoleArn
+
+StackName: "{{vars.serviceName}}-repo"
+Template: cfn-template.repo.yaml
+ServiceRoleARN: !$ serviceRoleArn
+
+Parameters:
+  ServiceName: !$ vars.serviceName
+  ServiceOwner: !$ vars.serviceOwner
+
+OnFailure: DELETE
+
+Tags:
+  owner: !$ vars.serviceOwner
+  environment: shared

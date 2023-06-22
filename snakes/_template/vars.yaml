@@ -1,0 +1,12 @@
+name: my-snake-name
+owner: my-name
+port: 8080
+
+# recommended resources. increase these if your stack is getting OOMKilled
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

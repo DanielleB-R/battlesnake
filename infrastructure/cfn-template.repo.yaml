@@ -1,0 +1,28 @@
+Parameters:
+  ServiceName:
+    Type: String
+  ServiceOwner:
+    Type: String
+
+Resources:
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub ${ServiceOwner}/${ServiceName}
+      # Policy to give access to staging account
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: AllowPull
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub
+                  - arn:aws:iam::${StagingAccountId}:root
+                  - StagingAccountId: !ImportValue account-metadata:StagingAccountId
+            Action:
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:BatchGetImage"
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:ListImages"

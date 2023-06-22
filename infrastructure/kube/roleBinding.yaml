@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edit
+  namespace: battlesnake
+roleRef:
+  # reference to default Cluster Role "edit"
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  # Role is "created" in aws-auth ConfigMap
+  - kind: Group
+    apiGroup: rbac.authorization.k8s.io
+    # should match group name in aws-auth config map
+    name: developers

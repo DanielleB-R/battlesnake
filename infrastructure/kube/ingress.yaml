@@ -1,0 +1,52 @@
+$imports:
+  accountDomainName: 'cfn:export:account-dns:Domain'
+  domainName: 'cfn:export:dns-unbounce-{{ iidy.environment }}:Domain'
+  # ACM certificate for unbounce.com wildcard
+  certificateARN: 'cfn:export:dns-unbounce-{{ iidy.environment }}:CertificateArn'
+  vars: ../vars.yaml
+  snakeName: 'env:SNAKE_NAME'
+  snakeVars: ../../snakes/{{ snakeName }}/vars.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: !$ snakeVars.name
+  namespace: !$ vars.namespace
+  labels:
+    app: !$ snakeVars.name
+  # see the following link for a full list of annotations to add for this ingress:
+  # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations
+  annotations:
+    component: app
+    serviceOwner: !$ vars.serviceOwner
+    environment: !$ iidy.environment
+    # change this value to 'internal' if you need an internal ALB
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/group.name: battlesnake
+    # ports the ALB listen on
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    # redirect traffic from the ports that the ALB listens on to port 443
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    # needed for SSL support. Additional certificates can be added as comma-separated strings
+    alb.ingress.kubernetes.io/certificate-arn: '{{ certificateARN }}'
+    # the security policy assigned to the ALB. Specifies the protocols & ciphers that can be used to establish an SSL connection.
+    # The following policy only supports TLS1.2. Use ELBSecurityPolicy-2016-08 if support for older versions is required.
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    # route traffic using pod IP
+    alb.ingress.kubernetes.io/target-type: ip
+    # custom attributes to set for the ALB
+    alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true,idle_timeout.timeout_seconds=120
+    # tags that will be added to the ALB
+    alb.ingress.kubernetes.io/tags: owner=core, lifetime=long, project=battlesnake, environment={{ iidy.environment }}
+spec:
+  # specify the ingress controller to use
+  ingressClassName: lb-external
+  rules:
+    # eg. service-eks-production.us-east-1.legacy.unbounce.net
+    - host: "{{ snakeVars.name }}-eks-{{ iidy.environment }}.{{ iidy.region }}.{{ accountDomainName }}"
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: !$ snakeVars.name
+              servicePort: 80
