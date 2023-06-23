@@ -1,18 +1,18 @@
 # Pick a good base image for your language stack
-# FROM node:16.10.0-alpine3.14
+FROM clojure:temurin-20-lein-alpine
 
 # set the app directory that your stack expects
-# WORKDIR /usr/src/app
+WORKDIR /usr/src/app
 
 # copy in your source files
-# COPY . .
+COPY . .
 
 # run any compilation steps your stack needs
-# RUN npm install \
-#   && npm run build
+RUN lein ring uberjar && cp target/battlesnake-*-standalone.jar battlesnake.jar
 
 # port 8080 is set by default in your snake's vars.yaml
-# EXPOSE 8080
+EXPOSE 8080
+ENV PORT=8080
 
 # set the command to start your API server
-# CMD ["node", "build/index.js"]
+CMD java -jar battlesnake.jar

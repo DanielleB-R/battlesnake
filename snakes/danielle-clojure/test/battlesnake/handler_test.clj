@@ -1,7 +1,7 @@
 (ns battlesnake.handler-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
-            [battlesnake.handler :refer :all]))
+            [battlesnake.handler :refer [app]]))
 
 (deftest test-app
   (testing "main route"
