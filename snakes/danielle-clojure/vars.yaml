@@ -1,5 +1,5 @@
-name: my-snake-name
-owner: my-name
+name: lisp-snake
+owner: danielle-brook.roberge
 port: 8080
 
 # recommended resources. increase these if your stack is getting OOMKilled
